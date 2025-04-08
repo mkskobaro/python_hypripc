@@ -1,3 +1,4 @@
+import json
 import os
 import select
 import socket
@@ -14,8 +15,8 @@ class Listener:
 def write_socket_filename() -> str:
     hyprland_signature = os.getenv('HYPRLAND_INSTANCE_SIGNATURE')
     xdg_runtime_dir = os.getenv('XDG_RUNTIME_DIR')
-    hyprland_command_put_socket_filename = f'{xdg_runtime_dir}/hypr/{hyprland_signature}/.socket.sock'
-    return hyprland_command_put_socket_filename
+    hyprland_command_write_socket_filename = f'{xdg_runtime_dir}/hypr/{hyprland_signature}/.socket.sock'
+    return hyprland_command_write_socket_filename
 
 
 def read_socket_filename() -> str:
@@ -59,7 +60,7 @@ def cmd_ctl(command: str) -> str or None:
             return stdout
 
 
-def loop(listeners: list[Listener]):
+def listen(listeners: list[Listener]):
     event_to_listeners = {}
     for listener in listeners:
         if listener.event not in event_to_listeners:
@@ -89,7 +90,7 @@ def loop(listeners: list[Listener]):
                             listener.callback(data.decode())
 
 
-def one_time(listener: Listener):
+def one_shot(listener: Listener):
     unprocessed_data = b''
     while True:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as rs:
@@ -110,3 +111,23 @@ def one_time(listener: Listener):
                         if event == listener.event:
                             listener.callback(data.decode())
                             return
+
+
+def get_monitors() -> list[dict]:
+    return json.loads(cmd_sock('monitors all'))
+
+
+def get_current_monitor() -> dict:
+    monitors = get_monitors()
+    for monitor in monitors:
+        if monitor['focused']:
+            return monitor
+    raise Exception('No focused monitor found')
+
+
+def get_workspaces() -> list[dict]:
+    return json.loads(cmd_sock('workspaces'))
+
+
+def get_current_workspace() -> dict:
+    return json.loads(cmd_sock('activeworkspace'))
