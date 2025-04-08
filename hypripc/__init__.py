@@ -131,3 +131,11 @@ def get_workspaces() -> list[dict]:
 
 def get_current_workspace() -> dict:
     return json.loads(cmd_sock('activeworkspace'))
+
+
+def get_windows() -> list[dict]:
+    return json.loads(cmd_sock('clients'))
+
+
+def get_current_window() -> dict:
+    return json.loads(cmd_sock('activewindow'))
