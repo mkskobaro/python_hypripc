@@ -1,0 +1,1 @@
+usage example -> `random_hyprpaper_wallpaper.py`
